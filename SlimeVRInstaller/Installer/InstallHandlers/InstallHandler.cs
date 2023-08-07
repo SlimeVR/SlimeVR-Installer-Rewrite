@@ -1,3 +1,4 @@
+using SlimeVRInstaller.Installer.Exceptions;
 using SlimeVRInstaller.Network;
 
 namespace SlimeVRInstaller.Installer.InstallHandlers
@@ -11,7 +12,8 @@ namespace SlimeVRInstaller.Installer.InstallHandlers
 
         public readonly Progress<DownloadProgress> ProgressReporter;
 
-        public string DownloadedFilePath;
+        public string DownloadedFilePath = "";
+        public bool FileExists => !string.IsNullOrWhiteSpace(DownloadedFilePath) && File.Exists(DownloadedFilePath);
 
         public InstallHandler(string name, string version, string uri, string fileName)
         {
@@ -25,7 +27,10 @@ namespace SlimeVRInstaller.Installer.InstallHandlers
 
         public virtual async Task Install(CancellationToken cancellationToken = default)
         {
-            // Do nothing?
+            if (!FileExists)
+            {
+                throw new InstallException($"{nameof(DownloadedFilePath)} is not set or does not exist. Download the file and set the downloaded file path before installing.");
+            }
         }
     }
 }

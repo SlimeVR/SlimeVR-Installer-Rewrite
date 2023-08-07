@@ -11,6 +11,9 @@ namespace SlimeVRInstaller.Installer.InstallHandlers
 
         public override async Task Install(CancellationToken cancellationToken)
         {
+            // Run the parent install function first
+            await base.Install(cancellationToken);
+
             var process = new Process();
             process.StartInfo.FileName = DownloadedFilePath;
             process.Start();
@@ -18,7 +21,7 @@ namespace SlimeVRInstaller.Installer.InstallHandlers
 
             if (process.ExitCode != 0)
             {
-                throw new FailedToInstallException($"Failed to install {Name}: \"{DownloadedFilePath}\" exited with code {process.ExitCode}.");
+                throw new InstallException($"Failed to install {Name}: \"{DownloadedFilePath}\" exited with code {process.ExitCode}.");
             }
         }
     }

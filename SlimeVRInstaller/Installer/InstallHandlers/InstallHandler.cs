@@ -1,8 +1,8 @@
 using SlimeVRInstaller.Network;
 
-namespace SlimeVRInstaller.Installer
+namespace SlimeVRInstaller.Installer.InstallHandlers
 {
-    public class InstallFile
+    public class InstallHandler
     {
         public readonly string Name;
         public readonly string Version;
@@ -11,7 +11,7 @@ namespace SlimeVRInstaller.Installer
 
         public readonly Progress<DownloadProgress> ProgressReporter;
 
-        public InstallFile(string name, string version, string uri, string fileName)
+        public InstallHandler(string name, string version, string uri, string fileName)
         {
             Name = name;
             Version = version;
@@ -19,6 +19,11 @@ namespace SlimeVRInstaller.Installer
             FileName = fileName;
 
             ProgressReporter = new(progress => Console.WriteLine($"{Name} [{progress.BytesDownloadedMiB:0.00} MiB / {progress.TotalBytesMiB:0.00} MiB] ({progress.Progress:0.00%})"));
+        }
+
+        public virtual async Task Install(string filePath, CancellationToken cancellationToken = default)
+        {
+            // Do nothing?
         }
     }
 }

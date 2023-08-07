@@ -9,16 +9,16 @@ namespace SlimeVRInstaller.Installer.InstallHandlers
         {
         }
 
-        public override async Task Install(string filePath, CancellationToken cancellationToken)
+        public override async Task Install(CancellationToken cancellationToken)
         {
             var process = new Process();
-            process.StartInfo.FileName = filePath;
+            process.StartInfo.FileName = DownloadedFilePath;
             process.Start();
             await process.WaitForExitAsync(cancellationToken);
 
             if (process.ExitCode != 0)
             {
-                throw new FailedToInstallException($"Failed to install {Name}: \"{filePath}\" exited with code {process.ExitCode}.");
+                throw new FailedToInstallException($"Failed to install {Name}: \"{DownloadedFilePath}\" exited with code {process.ExitCode}.");
             }
         }
     }

@@ -11,6 +11,8 @@ namespace SlimeVRInstaller.Installer.InstallHandlers
 
         public readonly Progress<DownloadProgress> ProgressReporter;
 
+        public string DownloadedFilePath;
+
         public InstallHandler(string name, string version, string uri, string fileName)
         {
             Name = name;
@@ -21,7 +23,7 @@ namespace SlimeVRInstaller.Installer.InstallHandlers
             ProgressReporter = new(progress => Console.WriteLine($"{Name} [{progress.BytesDownloadedMiB:0.00} MiB / {progress.TotalBytesMiB:0.00} MiB] ({progress.Progress:0.00%})"));
         }
 
-        public virtual async Task Install(string filePath, CancellationToken cancellationToken = default)
+        public virtual async Task Install(CancellationToken cancellationToken = default)
         {
             // Do nothing?
         }

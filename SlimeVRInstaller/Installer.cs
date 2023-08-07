@@ -24,7 +24,7 @@ namespace SlimeVRInstaller
             Console.WriteLine($"Using temp directory \"{tempFolder.FullName}\" for installation");
 
             // Download files asynchronously
-            var downloadProgress = new Progress<float>(progress => Console.WriteLine($"Download is at {progress:0.00%}"));
+            var downloadProgress = new Progress<DownloadProgress>(progress => Console.WriteLine($"Download is at {progress.Progress:0.00%}"));
             var tasks = new Task[]
             {
                 DownloadUtils.Download(httpClient, ServerUrl, Path.Combine(tempFolder.FullName, "SlimeVR-win64.zip"), downloadProgress),

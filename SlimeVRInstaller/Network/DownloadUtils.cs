@@ -9,12 +9,12 @@ namespace SlimeVRInstaller.Network
             return new Uri(uri, UriKind.RelativeOrAbsolute);
         }
 
-        public static async Task Download(HttpClient httpClient, string uri, string targetFilePath, IProgress<float>? progress = null, CancellationToken cancellationToken = default)
+        public static async Task Download(HttpClient httpClient, string uri, string targetFilePath, IProgress<DownloadProgress>? progress = null, CancellationToken cancellationToken = default)
         {
             await Download(httpClient, CreateUri(uri), targetFilePath, progress, cancellationToken);
         }
 
-        public static async Task Download(HttpClient httpClient, Uri uri, string targetFilePath, IProgress<float>? progress = null, CancellationToken cancellationToken = default)
+        public static async Task Download(HttpClient httpClient, Uri uri, string targetFilePath, IProgress<DownloadProgress>? progress = null, CancellationToken cancellationToken = default)
         {
             // Create the target file from the download
             using var targetFile = new FileStream(targetFilePath, FileMode.Create);
@@ -23,11 +23,11 @@ namespace SlimeVRInstaller.Network
             using var response = await httpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 
             // Set up the content to be read
-            var contentLength = response.Content.Headers.ContentLength;
+            var contentLength = response.Content.Headers.ContentLength ?? -1L;
             using var content = await response.Content.ReadAsStreamAsync(cancellationToken);
 
             // When no progress reporter was given or the content length is unknown
-            if (progress == null || contentLength == null)
+            if (progress == null || contentLength <= 0L)
             {
                 // Download without progress reporting
                 await content.CopyToAsync(targetFile, cancellationToken);
@@ -35,13 +35,13 @@ namespace SlimeVRInstaller.Network
             else
             {
                 // Convert absolute progress (bytes downloaded) into relative progress (0 - 1)
-                var relativeProgress = new Progress<long>(totalBytes => progress.Report((float)totalBytes / contentLength.Value));
+                var relativeProgress = new Progress<long>(downloadedBytes => progress.Report(new DownloadProgress(downloadedBytes, contentLength)));
                 // Use the extension method to report progress while downloading
                 await content.CopyToAsync(targetFile, progress: relativeProgress, cancellationToken: cancellationToken);
             }
 
             // Report 100% progress on completing the download
-            progress?.Report(1f);
+            progress?.Report(contentLength > 0L ? new DownloadProgress(contentLength, contentLength) : new DownloadProgress(1f));
         }
 
         public static async Task CopyToAsync(this Stream source, Stream destination, int bufferSize = 81920, IProgress<long>? progress = null, CancellationToken cancellationToken = default)

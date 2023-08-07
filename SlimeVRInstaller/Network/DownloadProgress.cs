@@ -6,6 +6,10 @@ namespace SlimeVRInstaller.Network
         public readonly long TotalBytes;
         public readonly float Progress;
 
+        public const long BytesToMebibytes = 1024L * 1024L;
+        public double BytesDownloadedMiB => (double)BytesDownloaded / BytesToMebibytes;
+        public double TotalBytesMiB => (double)TotalBytes / BytesToMebibytes;
+
         public DownloadProgress(long bytesDownloaded, long totalBytes)
         {
             BytesDownloaded = bytesDownloaded;

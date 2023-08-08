@@ -11,7 +11,7 @@ namespace SlimeVRInstaller.Installer.InstallHandlers
 
         public override async Task Install(CancellationToken cancellationToken)
         {
-            // Run the parent install function first
+            // Call the parent install method
             await base.Install(cancellationToken);
 
             var process = new Process();

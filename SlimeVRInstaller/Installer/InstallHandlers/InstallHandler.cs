@@ -12,6 +12,7 @@ namespace SlimeVRInstaller.Installer.InstallHandlers
 
         public readonly Progress<DownloadProgress> ProgressReporter;
 
+        public bool ShouldInstall = true;
         public string DownloadedFilePath = "";
         public bool FileExists => !string.IsNullOrWhiteSpace(DownloadedFilePath) && File.Exists(DownloadedFilePath);
 
@@ -25,12 +26,23 @@ namespace SlimeVRInstaller.Installer.InstallHandlers
             ProgressReporter = new(progress => Console.WriteLine($"{Name} [{progress.BytesDownloadedMiB:0.00} MiB / {progress.TotalBytesMiB:0.00} MiB] ({progress.Progress:0.00%})"));
         }
 
-        public virtual async Task Install(CancellationToken cancellationToken = default)
+        public void CheckForFile()
         {
             if (!FileExists)
             {
                 throw new InstallException($"{nameof(DownloadedFilePath)} is not set or does not exist. Download the file and set the downloaded file path before installing.");
             }
+        }
+
+        public virtual bool NeedsInstall()
+        {
+            return true;
+        }
+
+        public virtual async Task Install(CancellationToken cancellationToken = default)
+        {
+            if (!ShouldInstall) return;
+            CheckForFile();
         }
     }
 }

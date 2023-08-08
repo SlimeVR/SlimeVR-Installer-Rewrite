@@ -10,7 +10,7 @@ namespace SlimeVRInstaller.Installer
         // Server
         public static readonly InstallHandler Server = new("SlimeVR Server", "", "https://github.com/SlimeVR/SlimeVR-Server/releases/latest/download/SlimeVR-win64.zip", "SlimeVR-win64.zip");
         public static readonly InstallHandler Java = new("Java JRE", "", "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.4.1%2B1/OpenJDK17U-jre_x64_windows_hotspot_17.0.4.1_1.zip", "OpenJDK17U-jre_x64_windows_hotspot_17.0.4.1_1.zip");
-        public static readonly ExeInstallHandler WebView = new("Edge WebView2", "", "https://go.microsoft.com/fwlink/p/?LinkId=2124703", "MicrosoftEdgeWebView2RuntimeInstaller.exe");
+        public static readonly WebViewInstallHandler WebView = new("Edge WebView2", "", "https://go.microsoft.com/fwlink/p/?LinkId=2124703", "MicrosoftEdgeWebView2RuntimeInstaller.exe");
 
         // Driver
         public static readonly InstallHandler SteamVR = new("SteamVR Driver", "", "https://github.com/SlimeVR/SlimeVR-OpenVR-Driver/releases/latest/download/slimevr-openvr-driver-win64.zip", "slimevr-openvr-driver-win64.zip");
@@ -31,7 +31,13 @@ namespace SlimeVRInstaller.Installer
         {
             // Create a temporary directory to download files to
             var tempFolder = Directory.CreateTempSubdirectory("SlimeVR-Installer-");
-            Console.WriteLine($"Using temp directory \"{tempFolder.FullName}\" for installation");
+            Console.WriteLine($"Using temp directory \"{tempFolder.FullName}\" for installation.");
+
+            // Select components to install
+            foreach (var component in Components)
+            {
+                component.ShouldInstall = component.NeedsInstall();
+            }
 
             // Download files asynchronously
             var tasks = new Task[Components.Length];
@@ -46,6 +52,7 @@ namespace SlimeVRInstaller.Installer
             // Install each component one at a time
             foreach (var component in Components)
             {
+                if (!component.ShouldInstall) continue;
                 component.Install().Wait();
             }
 
@@ -57,6 +64,9 @@ namespace SlimeVRInstaller.Installer
 
         public async Task Download(InstallHandler installHandler, string tempFolderPath, CancellationToken cancellationToken = default)
         {
+            // Check if the component should be installed
+            if (!installHandler.ShouldInstall) return;
+
             // Check if the file is already downloaded
             if (installHandler.FileExists) return;
 

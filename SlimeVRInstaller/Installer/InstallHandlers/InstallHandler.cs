@@ -39,7 +39,7 @@ namespace SlimeVRInstaller.Installer.InstallHandlers
             return true;
         }
 
-        public virtual async Task Install(CancellationToken cancellationToken = default)
+        public virtual async Task Install(string installPath, CancellationToken cancellationToken = default)
         {
             if (!ShouldInstall) return;
             CheckForFile();

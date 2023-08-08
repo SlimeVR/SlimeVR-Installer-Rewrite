@@ -7,6 +7,8 @@ namespace SlimeVRInstaller.Installer
     {
         public readonly HttpClient httpClient = new();
 
+        public static readonly string DefaultInstallPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "SlimeVR Server");
+
         // Server
         public static readonly InstallHandler Server = new("SlimeVR Server", "", "https://github.com/SlimeVR/SlimeVR-Server/releases/latest/download/SlimeVR-win64.zip", "SlimeVR-win64.zip");
         public static readonly InstallHandler Java = new("Java JRE", "", "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.4.1%2B1/OpenJDK17U-jre_x64_windows_hotspot_17.0.4.1_1.zip", "OpenJDK17U-jre_x64_windows_hotspot_17.0.4.1_1.zip");
@@ -54,7 +56,7 @@ namespace SlimeVRInstaller.Installer
             foreach (var component in Components)
             {
                 if (!component.ShouldInstall) continue;
-                component.Install().Wait();
+                component.Install(DefaultInstallPath).Wait();
             }
 
             // Remove the temporary directory when done

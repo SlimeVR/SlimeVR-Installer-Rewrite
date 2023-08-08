@@ -9,10 +9,9 @@ namespace SlimeVRInstaller.Installer.InstallHandlers
         {
         }
 
-        public override async Task Install(CancellationToken cancellationToken)
+        public override async Task Install(string installPath, CancellationToken cancellationToken)
         {
-            // Call the parent install method
-            await base.Install(cancellationToken);
+            await base.Install(installPath, cancellationToken);
 
             var process = new Process();
             process.StartInfo.FileName = DownloadedFilePath;

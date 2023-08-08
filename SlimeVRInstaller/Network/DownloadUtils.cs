@@ -9,9 +9,9 @@ namespace SlimeVRInstaller.Network
             return new Uri(uri, UriKind.RelativeOrAbsolute);
         }
 
-        public static async Task Download(HttpClient httpClient, string uri, string targetFilePath, IProgress<DownloadProgress>? progress = null, CancellationToken cancellationToken = default)
+        public static Task Download(HttpClient httpClient, string uri, string targetFilePath, IProgress<DownloadProgress>? progress = null, CancellationToken cancellationToken = default)
         {
-            await Download(httpClient, CreateUri(uri), targetFilePath, progress, cancellationToken);
+            return Download(httpClient, CreateUri(uri), targetFilePath, progress, cancellationToken);
         }
 
         public static async Task Download(HttpClient httpClient, Uri uri, string targetFilePath, IProgress<DownloadProgress>? progress = null, CancellationToken cancellationToken = default)

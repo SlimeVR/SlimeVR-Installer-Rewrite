@@ -56,7 +56,7 @@ namespace SlimeVRInstaller.Installer
             foreach (var component in Components)
             {
                 if (!component.ShouldInstall) continue;
-                component.Install(DefaultInstallPath).Wait();
+                component.Install(tempFolder.FullName, DefaultInstallPath).Wait();
             }
 
             // Remove the temporary directory when done

@@ -24,9 +24,9 @@ namespace SlimeVRInstaller.Installer.InstallHandlers
             return true;
         }
 
-        public override async Task Install(string installPath, CancellationToken cancellationToken)
+        public override async Task Install(string tempPath, string installPath, CancellationToken cancellationToken)
         {
-            await base.Install(installPath, cancellationToken);
+            await base.Install(tempPath, installPath, cancellationToken);
         }
     }
 }

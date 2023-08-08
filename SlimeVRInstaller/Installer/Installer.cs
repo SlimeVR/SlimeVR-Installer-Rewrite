@@ -36,6 +36,7 @@ namespace SlimeVRInstaller.Installer
             // Select components to install
             foreach (var component in Components)
             {
+                // Download everything that needs to be installed
                 component.ShouldInstall = component.NeedsInstall();
             }
 

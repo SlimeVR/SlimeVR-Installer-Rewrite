@@ -9,18 +9,40 @@ namespace SlimeVRInstaller.Network
             return new Uri(uri, UriKind.RelativeOrAbsolute);
         }
 
-        public static Task Download(HttpClient httpClient, string uri, string targetFilePath, IProgress<DownloadProgress>? progress = null, CancellationToken cancellationToken = default)
+        public static Task Download(
+            HttpClient httpClient,
+            string uri,
+            string targetFilePath,
+            IProgress<DownloadProgress>? progress = null,
+            CancellationToken cancellationToken = default
+        )
         {
-            return Download(httpClient, CreateUri(uri), targetFilePath, progress, cancellationToken);
+            return Download(
+                httpClient,
+                CreateUri(uri),
+                targetFilePath,
+                progress,
+                cancellationToken
+            );
         }
 
-        public static async Task Download(HttpClient httpClient, Uri uri, string targetFilePath, IProgress<DownloadProgress>? progress = null, CancellationToken cancellationToken = default)
+        public static async Task Download(
+            HttpClient httpClient,
+            Uri uri,
+            string targetFilePath,
+            IProgress<DownloadProgress>? progress = null,
+            CancellationToken cancellationToken = default
+        )
         {
             // Create the target file from the download
             using var targetFile = new FileStream(targetFilePath, FileMode.Create);
 
             // Only request the headers for now, content will be downloaded separately
-            using var response = await httpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            using var response = await httpClient.GetAsync(
+                uri,
+                HttpCompletionOption.ResponseHeadersRead,
+                cancellationToken
+            );
 
             // Set up the content to be read
             var contentLength = response.Content.Headers.ContentLength ?? -1L;
@@ -35,16 +57,32 @@ namespace SlimeVRInstaller.Network
             else
             {
                 // Convert absolute progress (bytes downloaded) into relative progress (0 - 1)
-                var relativeProgress = new Progress<long>(downloadedBytes => progress.Report(new DownloadProgress(downloadedBytes, contentLength)));
+                var relativeProgress = new Progress<long>(downloadedBytes =>
+                    progress.Report(new DownloadProgress(downloadedBytes, contentLength))
+                );
                 // Use the extension method to report progress while downloading
-                await content.CopyToAsync(targetFile, progress: relativeProgress, cancellationToken: cancellationToken);
+                await content.CopyToAsync(
+                    targetFile,
+                    progress: relativeProgress,
+                    cancellationToken: cancellationToken
+                );
             }
 
             // Report 100% progress on completing the download
-            progress?.Report(contentLength > 0L ? new DownloadProgress(contentLength, contentLength) : new DownloadProgress(1f));
+            progress?.Report(
+                contentLength > 0L
+                    ? new DownloadProgress(contentLength, contentLength)
+                    : new DownloadProgress(1f)
+            );
         }
 
-        public static async Task CopyToAsync(this Stream source, Stream destination, int bufferSize = 81920, IProgress<long>? progress = null, CancellationToken cancellationToken = default)
+        public static async Task CopyToAsync(
+            this Stream source,
+            Stream destination,
+            int bufferSize = 81920,
+            IProgress<long>? progress = null,
+            CancellationToken cancellationToken = default
+        )
         {
             if (bufferSize < 0)
                 throw new ArgumentOutOfRangeException(nameof(bufferSize));
@@ -62,9 +100,17 @@ namespace SlimeVRInstaller.Network
             {
                 long totalBytesRead = 0;
                 int currentBytesRead;
-                while ((currentBytesRead = await source.ReadAsync(buffer, cancellationToken).ConfigureAwait(false)) > 0)
+                while (
+                    (
+                        currentBytesRead = await source
+                            .ReadAsync(buffer, cancellationToken)
+                            .ConfigureAwait(false)
+                    ) > 0
+                )
                 {
-                    await destination.WriteAsync(buffer.AsMemory(0, currentBytesRead), cancellationToken).ConfigureAwait(false);
+                    await destination
+                        .WriteAsync(buffer.AsMemory(0, currentBytesRead), cancellationToken)
+                        .ConfigureAwait(false);
                     totalBytesRead += currentBytesRead;
                     progress?.Report(totalBytesRead);
                 }

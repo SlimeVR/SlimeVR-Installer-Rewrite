@@ -14,10 +14,14 @@ namespace SlimeVRInstaller.Installer
 
         public void InstallAllNeeded()
         {
-            InstallComponents(Enum.GetValues<InstallComponentType>());
+            InstallComponents(
+                Enum.GetValues<InstallComponentType>()
+                    .Where(c => !InstallComponent.Components[c].IsInstalled)
+                    .ToArray()
+            );
         }
 
-        public void InstallComponents(InstallComponentType[] components)
+        public void InstallComponents(params InstallComponentType[] components)
         {
             // Create a temporary directory to download files to
             var tempFolder = Directory.CreateTempSubdirectory("SlimeVR-Installer-");

@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using SlimeVRInstaller.Installer.Components;
 
 namespace SlimeVRInstaller.Installer
@@ -9,8 +8,8 @@ namespace SlimeVRInstaller.Installer
         public DirectoryInfo TempFolder;
         public DirectoryInfo InstallFolder;
 
-        public bool IsInstalled;
         public FileInfo? File = null;
+        public bool IsInstalled;
 
         public bool DoesFileExist => File != null && File.Exists;
 
@@ -23,29 +22,7 @@ namespace SlimeVRInstaller.Installer
             Component = component;
             TempFolder = tempPath;
             InstallFolder = installPath;
-            IsInstalled = IsComponentInstalled(component.Type);
-        }
-
-        public static bool IsComponentInstalled(InstallComponentType component)
-        {
-            switch (component)
-            {
-                case InstallComponentType.WebView:
-                    if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    {
-                        Console.WriteLine("OS is not Windows, WebView2 is not required.");
-                        return true;
-                    }
-                    var webViewVersion = RegistryUtils.WebViewVersion;
-                    if (webViewVersion != null)
-                    {
-                        Console.WriteLine($"WebView2 ({webViewVersion}) is already installed.");
-                        return true;
-                    }
-                    return false;
-                default:
-                    return false;
-            }
+            IsInstalled = component.IsInstalled;
         }
     }
 }

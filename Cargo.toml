@@ -1,0 +1,26 @@
+[workspace]
+# Use 2021 edition resolver, better resolves crate features.
+resolver = "2"
+
+# A list of all rust crates in the workspace.
+members = ["autoupdater", "gui"]
+
+# These settings can be inherited by workspace members
+[workspace.package]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+version = "0.1.0"
+rust-version = "1.75"
+repository = "https://github.com/SlimeVR/SlimeVR-Installer-Rewrite"
+authors = [
+    "ImUrX <imurx@proton.me>",
+    "Butterscotch! <bscotchvanilla@gmail.com>",
+]
+
+[profile.release]
+opt-level = 2
+strip = "debuginfo"
+lto = true
+
+[workspace.dependencies]
+log = "0.4"

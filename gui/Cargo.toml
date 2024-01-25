@@ -10,11 +10,13 @@ rust-version.workspace = true
 
 
 [dependencies]
+env_logger = "0.11"
 fltk = { version = "1.4", features = [
     # "fltk-bundled",
     "use-wayland",
     "use-ninja",
 ] }
-env_logger = "0.11"
+rust-embed = { version = "8.2.0", features = ["compression"] }
+vek = { version = "0.16", default-features = false, features = ["libm", "std"] }
 
 log.workspace = true

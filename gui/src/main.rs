@@ -7,22 +7,23 @@ mod loading;
 mod util;
 
 fn main() {
-    env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
+	env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
 
-    let a = app::App::default().with_scheme(app::Scheme::Gtk);
-    let mut wind = Window::new(100, 100, util::WIDTH, util::HEIGHT, "SlimeVR Installer");
-    let mut load_screen = LoadingScreen::new();
-    // load_screen.hide();
-    wind.end();
-    wind.show();
+	let a = app::App::default().with_scheme(app::Scheme::Gtk);
+	let mut wind =
+		Window::new(100, 100, util::WIDTH, util::HEIGHT, "SlimeVR Installer");
+	let mut load_screen = LoadingScreen::new();
+	// load_screen.hide();
+	wind.end();
+	wind.show();
 
-    let (r, g, b) = util::OUTER_BACKGROUND.to_rgb();
-    app::background(r, g, b);
-    let (r, g, b) = util::INNER_BACKGROUND.to_rgb();
-    app::background2(r, g, b);
+	let (r, g, b) = util::OUTER_BACKGROUND.to_rgb();
+	app::background(r, g, b);
+	let (r, g, b) = util::INNER_BACKGROUND.to_rgb();
+	app::background2(r, g, b);
 
-    let (r, g, b) = util::TEXT.to_rgb();
-    app::foreground(r, g, b);
+	let (r, g, b) = util::TEXT.to_rgb();
+	app::foreground(r, g, b);
 
-    a.run().unwrap();
+	a.run().unwrap();
 }

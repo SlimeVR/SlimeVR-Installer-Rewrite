@@ -326,14 +326,14 @@ impl AnimatedProgress {
 		let second_per = Self::TOTAL_PROGRESS_TIME / self.inner.maximum();
 		let old_value = self.progress_value.replace(v);
 		let time_factor = *self.iteration.borrow()
-			/ (second_per
-				* (old_value - *self.prev_progress_value.borrow()).abs());
+			/ (second_per * (old_value - *self.prev_progress_value.borrow()).abs());
 		if time_factor >= 1. || old_value > v {
 			*self.iteration.borrow_mut() = 0.;
 			*self.prev_progress_value.borrow_mut() = old_value;
 		} else {
 			let from = *self.prev_progress_value.borrow();
-			*self.iteration.borrow_mut() = (self.inner.value() * second_per) - (from * second_per);
+			*self.iteration.borrow_mut() =
+				(self.inner.value() * second_per) - (from * second_per);
 		}
 	}
 

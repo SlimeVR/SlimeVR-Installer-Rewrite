@@ -1,39 +1,35 @@
 use std::str::FromStr;
 
-use lazy_static::lazy_static;
 use serde::{de::Error as DeError, Deserialize, Serialize};
 
 #[derive(Debug, Copy, Clone, PartialEq, Hash, Eq)]
 pub struct Platform {
-	arch: platforms::Arch,
-	os: platforms::OS,
+	arch: target_lexicon::Architecture,
+	os: target_lexicon::OperatingSystem,
 }
 
-const TARGET: &str = env!("TARGET");
-
 impl Platform {
-	pub fn current() -> Self {
-		lazy_static! {
-			static ref CURRENT: &'static platforms::Platform =
-				platforms::Platform::find(TARGET).unwrap();
-		}
+	pub const CURRENT: Self = Self {
+		arch: target_lexicon::Architecture::host(),
+		os: target_lexicon::OperatingSystem::host(),
+	};
+}
 
-		Self {
-			arch: CURRENT.target_arch,
-			os: CURRENT.target_os,
-		}
-	}
-
-	fn as_str(self) -> String {
+impl ToString for Platform {
+	fn to_string(&self) -> String {
 		format!("{}-{}", self.arch, self.os)
 	}
 }
 
 impl FromStr for Platform {
-	type Err = platforms::Error;
+	type Err = ();
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
 		let v: Vec<&str> = s.split("-").collect();
+		if v.len() != 2 {
+			return Err(());
+		}
+
 		let arch = v[0].parse()?;
 		let os = v[1].parse()?;
 		Ok(Self { arch, os })
@@ -45,7 +41,7 @@ impl Serialize for Platform {
 	where
 		S: serde::Serializer,
 	{
-		serializer.serialize_str(&self.as_str())
+		serializer.serialize_str(&self.to_string())
 	}
 }
 

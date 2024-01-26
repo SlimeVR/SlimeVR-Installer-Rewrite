@@ -97,19 +97,18 @@ impl Components {
 
 impl From<AvailableComponentsFile> for Components {
 	fn from(available: AvailableComponentsFile) -> Self {
-		let platform = Platform::current();
 
 		let mut compatible = HashMap::new();
 		let mut incompatible = HashMap::new();
 
 		for (name, component) in available.components {
-			if component.platforms.contains(&platform) {
+			if component.platforms.contains(&Platform::CURRENT) {
 				compatible.insert(name, component);
 			} else {
 				incompatible.insert(
 					name,
 					component.incompatible_because(
-						IncompatibilityReason::PlatformNotSupported(platform.clone()),
+						IncompatibilityReason::PlatformNotSupported(Platform::CURRENT),
 					),
 				);
 			}

@@ -24,6 +24,6 @@ futures = "0.3"
 color-eyre = "0.6"
 path-absolutize = "3"
 semver = { version = "1.0.16", features = ["serde"] }
-platforms = { version = "3.3.0", features = ["serde"] }
+target-lexicon = { version = "0.12.13", features = ["serde_support"] }
 
 log.workspace = true

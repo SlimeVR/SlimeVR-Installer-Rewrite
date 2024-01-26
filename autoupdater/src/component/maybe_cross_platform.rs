@@ -20,7 +20,7 @@ impl<T> MaybeCrossPlatform<T> {
 	pub fn get(&self) -> Option<&T> {
 		match self {
 			Self::Cross(inner) => Some(inner),
-			Self::NotCross(map) => map.get(&Platform::current()),
+			Self::NotCross(map) => map.get(&Platform::CURRENT),
 		}
 	}
 
@@ -28,14 +28,14 @@ impl<T> MaybeCrossPlatform<T> {
 	pub fn get_mut(&mut self) -> Option<&mut T> {
 		match self {
 			Self::Cross(inner) => Some(inner),
-			Self::NotCross(map) => map.get_mut(&Platform::current()),
+			Self::NotCross(map) => map.get_mut(&Platform::CURRENT),
 		}
 	}
 
 	pub fn get_owned(self) -> Option<T> {
 		match self {
 			Self::Cross(inner) => Some(inner),
-			Self::NotCross(mut map) => map.remove(&Platform::current()),
+			Self::NotCross(mut map) => map.remove(&Platform::CURRENT),
 		}
 	}
 }

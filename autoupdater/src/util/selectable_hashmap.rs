@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Debug, hash::Hash};
+use std::{borrow::Borrow, collections::HashMap, fmt::Debug, hash::Hash};
 
 #[derive(Debug)]
 pub struct SelectableHashMap<K, V> {
@@ -114,51 +114,64 @@ impl<K: Hash + Clone + Eq + Debug, V: Selectable<K>> SelectableHashMap<K, V> {
 		}
 	}
 
-	pub fn disable(&mut self, name: &K) {
+	pub fn disable<Q>(&mut self, name: &Q)
+	where
+		K: Borrow<Q>,
+		Q: Hash + Eq + ?Sized,
+	{
 		match self.components.get_mut(name) {
 			Some(component) => {
 				if !component.is_enabled() {
 					return;
 				}
 
-				let mut component = self.components.remove(&name).unwrap();
+				let (name, mut component) = self.components.remove_entry(name).unwrap();
 				component.disable();
 
 				if let Some(dependencies) = component.value.dependencies() {
 					dependencies.iter().for_each(|dep| {
-						self.disable_inner(dep, vec![name]);
+						self.disable_inner(dep, vec![&name]);
 					});
 				}
 
-				self.components.insert(name.clone(), component);
+				self.components.insert(name, component);
 			}
 			_ => {}
 		}
 	}
 
-	pub fn enable(&mut self, name: &K) {
+	pub fn enable<Q>(&mut self, name: &Q)
+	where
+		K: Borrow<Q>,
+		Q: Hash + Eq + ?Sized,
+	{
 		match self.components.get_mut(name) {
 			Some(component) => {
 				if component.is_enabled() {
 					return;
 				}
 
-				let mut component = self.components.remove(&name).unwrap();
+				let (name, mut component) =
+					self.components.remove_entry(&name).unwrap();
 				component.enable();
 
 				if let Some(dependencies) = component.value.dependencies() {
 					dependencies.iter().for_each(|dep| {
-						self.enable_inner(dep, vec![name]);
+						self.enable_inner(dep, vec![&name]);
 					});
 				}
 
-				self.components.insert(name.clone(), component);
+				self.components.insert(name, component);
 			}
 			_ => {}
 		}
 	}
 
-	pub fn is_enabled(&self, name: &K) -> bool {
+	pub fn is_enabled<Q>(&self, name: &Q) -> bool
+	where
+		K: Borrow<Q>,
+		Q: Hash + Eq + ?Sized,
+	{
 		match self.components.get(name) {
 			Some(component) => component.is_enabled(),
 			_ => false,

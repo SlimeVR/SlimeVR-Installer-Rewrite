@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Display, fs::File, io, path::PathBuf};
+use std::{collections::HashMap, fmt::Display, fs::File, io, path::Path};
 
 use semver::Version;
 use serde::{Deserialize, Serialize};
@@ -19,7 +19,7 @@ pub struct AvailableComponentsFile {
 }
 
 impl AvailableComponentsFile {
-	pub fn load(path: PathBuf) -> io::Result<AvailableComponentsFile> {
+	pub fn load<P: AsRef<Path>>(path: P) -> io::Result<AvailableComponentsFile> {
 		match serde_yaml::from_reader(File::open(path)?) {
 			Ok(components) => Ok(components),
 			Err(e) => Err(io::Error::new(io::ErrorKind::Other, e)),

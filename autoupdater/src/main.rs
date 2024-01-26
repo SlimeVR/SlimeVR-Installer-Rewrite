@@ -1,10 +1,7 @@
 mod parsing;
 
-use autoupdater::{
-	component::{
-		AvailableComponentsFile, Component, Components, InstalledComponentsFile,
-	},
-	util::SelectableHashMap,
+use autoupdater::component::{
+	AvailableComponentsFile, Components, InstalledComponentsFile,
 };
 use clap::Parser;
 use color_eyre::eyre;
@@ -47,11 +44,10 @@ async fn main() -> Result<()> {
 	color_eyre::install()?;
 
 	let installed_components =
-		InstalledComponentsFile::load("installed_components.yml".into())?;
-	installed_components.save("installed_components.yml".into())?;
+		InstalledComponentsFile::load("installed_components.yml")?;
+	installed_components.save("installed_components.yml")?;
 
-	let all_installable_components =
-		AvailableComponentsFile::load("components.yml".into())?;
+	let all_installable_components = AvailableComponentsFile::load("components.yml")?;
 	let components: Components = all_installable_components.into();
 
 	println!("Compatible components:");
@@ -68,7 +64,7 @@ async fn main() -> Result<()> {
 	let mut thing = components.into_selectable_hashmap();
 	// dbg!(&thing);
 
-	thing.enable(&"slimevr_gui".to_string());
+	thing.enable("slimevr_gui");
 
 	for (_, c) in thing.selected_items_iter() {
 		println!("{}", c);

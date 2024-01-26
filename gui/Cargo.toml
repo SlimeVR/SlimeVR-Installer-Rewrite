@@ -17,6 +17,6 @@ fltk = { version = "1.4", features = [
     "use-ninja",
 ] }
 rust-embed = { version = "8.2.0", features = ["compression"] }
-vek = { version = "0.16", default-features = false, features = ["libm", "std"] }
+vek = { version = "0.16", default-features = false, features = ["std"] }
 
 log.workspace = true

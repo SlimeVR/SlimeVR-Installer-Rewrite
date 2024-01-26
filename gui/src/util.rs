@@ -14,12 +14,12 @@ pub const ACCENT_COLOR: Color = Color::from_hex(0x9D5CD4);
 pub const WIDTH: i32 = 400;
 pub const HEIGHT: i32 = 300;
 
-pub fn create_gif<P: AsRef<std::path::Path>, W: WidgetExt>(
-	path: P,
+pub fn create_gif<W: WidgetExt>(
+	data: &[u8],
 	w: &mut W,
 ) -> Result<AnimGifImage, FltkError> {
-	let mut img = AnimGifImage::load(
-		path,
+	let mut img = AnimGifImage::from_data(
+		data,
 		w,
 		AnimGifImageFlags::DONT_RESIZE_CANVAS | AnimGifImageFlags::DONT_SET_AS_IMAGE,
 	);

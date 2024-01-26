@@ -3,16 +3,16 @@ use std::{cell::RefCell, rc::Rc};
 use fltk::{
 	app::{self},
 	button,
-	frame::{self, Frame},
+	frame::Frame,
 	group,
 	image::AnimGifImage,
-	misc::{self, Progress},
+	misc::Progress,
 	prelude::*,
 	widget_extends,
 };
-use vek::{Lerp, MulAdd};
+use vek::Lerp;
 
-use crate::util::{self, create_gif};
+use crate::util::{self, create_gif, Assets};
 
 pub struct LoadingScreen {
 	inner: group::Group,
@@ -46,6 +46,45 @@ impl LoadingScreen {
 			.above_of(&*status, 1)
 			.center_x(&g);
 
+		let mut button = button::Button::default()
+			.with_label("0%")
+			.with_size(500, 20);
+		{
+			let progress = progress.clone();
+			button.set_callback(move |_| {
+				let progress = progress.clone();
+				progress.set_progress_value(0.)
+			});
+		}
+		let mut button_50 = button::Button::default()
+			.with_label("50%")
+			.with_size(500, 20)
+			.below_of(&button, 5);
+		{
+			let progress = progress.clone();
+			let mut animated_slime = animated_slime.clone();
+			button_50.set_callback(move |_| {
+				let mut animated_slime = animated_slime.clone();
+				let progress = progress.clone();
+				progress.set_progress_value(50.);
+				animated_slime.set_status(SlimeState::Jumpy);
+			});
+		}
+		let mut button_75 = button::Button::default()
+			.with_label("75%")
+			.with_size(500, 20)
+			.below_of(&button_50, 5);
+		{
+			let progress = progress.clone();
+			let animated_slime = animated_slime.clone();
+			button_75.set_callback(move |_| {
+				let mut animated_slime = animated_slime.clone();
+				let progress = progress.clone();
+				progress.set_progress_value(75.);
+				animated_slime.set_status(SlimeState::Curious)
+			});
+		}
+
 		g.end();
 
 		progress.set_progress_value(50.);
@@ -68,6 +107,7 @@ pub enum SlimeState {
 	Sad,
 }
 
+#[derive(Clone)]
 pub struct AnimatedSlime {
 	inner: Frame,
 
@@ -80,14 +120,20 @@ pub struct AnimatedSlime {
 
 impl AnimatedSlime {
 	pub fn new(width: i32, height: i32) -> Self {
-		let mut inner = frame::Frame::default().with_size(width, height);
+		let mut inner = Frame::default().with_size(width, height);
 		inner.set_frame(fltk::enums::FrameType::FlatBox);
 		let jumping_slime =
-			create_gif("./assets/jumping-slime.gif", &mut inner).unwrap();
+			create_gif(&Assets::get("jumping-slime.gif").unwrap().data, &mut inner)
+				.unwrap();
 		let curious_slime =
-			create_gif("./assets/curious-slime.gif", &mut inner).unwrap();
-		let happy_slime = create_gif("./assets/happy-slime.gif", &mut inner).unwrap();
-		let sad_slime = create_gif("./assets/sad-slime.gif", &mut inner).unwrap();
+			create_gif(&Assets::get("curious-slime.gif").unwrap().data, &mut inner)
+				.unwrap();
+		let happy_slime =
+			create_gif(&Assets::get("happy-slime.gif").unwrap().data, &mut inner)
+				.unwrap();
+		let sad_slime =
+			create_gif(&Assets::get("sad-slime.gif").unwrap().data, &mut inner)
+				.unwrap();
 		inner.set_image(Some(happy_slime.clone()));
 
 		Self {
@@ -207,7 +253,7 @@ impl AnimatedProgress {
 	const TOTAL_PROGRESS_TIME: f64 = 0.8;
 	const ITERATION_ANIMATION: f64 = 0.005;
 	pub fn new() -> Self {
-		let mut inner = misc::Progress::default();
+		let mut inner = Progress::default();
 
 		inner.set_selection_color(util::ACCENT_COLOR);
 
@@ -246,7 +292,10 @@ impl AnimatedProgress {
 		time: Rc<RefCell<f64>>,
 		handle: app::TimeoutHandle,
 	) {
-		let time_factor = *time.borrow() / Self::TOTAL_PROGRESS_TIME;
+		let second_per = Self::TOTAL_PROGRESS_TIME / progress.maximum();
+		let time_factor = *time.borrow()
+			/ (second_per
+				* (*progress_value.borrow() - *prev_progress_value.borrow()).abs());
 		if !progress.visible_r() {
 			app::repeat_timeout3(2., handle);
 			return;
@@ -257,11 +306,14 @@ impl AnimatedProgress {
 		}
 
 		*time.borrow_mut() += Self::ITERATION_ANIMATION;
+		let time_factor = *time.borrow()
+			/ (second_per
+				* (*progress_value.borrow() - *prev_progress_value.borrow()).abs());
 
 		progress.set_value(f64::lerp(
 			*prev_progress_value.borrow(),
 			*progress_value.borrow(),
-			*time.borrow() / Self::TOTAL_PROGRESS_TIME,
+			time_factor,
 		));
 		app::repeat_timeout3(Self::ITERATION_ANIMATION, handle)
 	}
@@ -271,13 +323,17 @@ impl AnimatedProgress {
 	}
 
 	pub fn set_progress_value(&self, v: f64) {
+		let second_per = Self::TOTAL_PROGRESS_TIME / self.inner.maximum();
 		let old_value = self.progress_value.replace(v);
-		if *self.iteration.borrow() / Self::TOTAL_PROGRESS_TIME >= 1. || old_value > v {
+		let time_factor = *self.iteration.borrow()
+			/ (second_per
+				* (old_value - *self.prev_progress_value.borrow()).abs());
+		if time_factor >= 1. || old_value > v {
 			*self.iteration.borrow_mut() = 0.;
 			*self.prev_progress_value.borrow_mut() = old_value;
 		} else {
 			let from = *self.prev_progress_value.borrow();
-			*self.iteration.borrow_mut() = (self.inner.value() - from) / (v - from);
+			*self.iteration.borrow_mut() = (self.inner.value() * second_per) - (from * second_per);
 		}
 	}
 

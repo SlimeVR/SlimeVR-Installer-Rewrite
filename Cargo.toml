@@ -24,3 +24,6 @@ lto = true
 
 [workspace.dependencies]
 log = "0.4"
+
+[patch.crates-io]
+fltk = { git = "https://github.com/fltk-rs/fltk-rs.git" }

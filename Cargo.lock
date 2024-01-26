@@ -456,8 +456,7 @@ checksum = "25cbce373ec4653f1a01a31e8a5e5ec0c622dc27ff9c4e6606eefef5cbbed4a5"
 [[package]]
 name = "fltk"
 version = "1.4.22"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9da639944e8827d048b63fe437e905e8177c41b9c7cb32f898ade7464208b3bd"
+source = "git+https://github.com/fltk-rs/fltk-rs.git#6633faae385812971d460dfc195b4c44b9d2c211"
 dependencies = [
  "bitflags 2.4.2",
  "crossbeam-channel",
@@ -469,8 +468,7 @@ dependencies = [
 [[package]]
 name = "fltk-sys"
 version = "1.4.22"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f434491b616dce4081d022a503e1a6a0cedd677a292d3c6f173db9dc566cd021"
+source = "git+https://github.com/fltk-rs/fltk-rs.git#6633faae385812971d460dfc195b4c44b9d2c211"
 dependencies = [
  "cmake",
 ]
@@ -855,12 +853,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "libm"
-version = "0.2.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ec2a862134d2a7d32d7983ddcdd1c4923530833c9f2ea1a44fc5fa473989058"
-
-[[package]]
 name = "linux-raw-sys"
 version = "0.4.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -949,7 +941,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39e3200413f237f41ab11ad6d161bc7239c84dcb631773ccd7de3dfe4b5c267c"
 dependencies = [
  "autocfg",
- "libm",
 ]
 
 [[package]]
@@ -1145,9 +1136,9 @@ dependencies = [
 
 [[package]]
 name = "regex-automata"
-version = "0.4.4"
+version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b7fa1134405e2ec9353fd416b17f8dacd46c473d7d3fd1cf202706a14eb792a"
+checksum = "5bb987efffd3c6d0d8f5f89510bb458559eab11e4f869acb20bf845e016259cd"
 dependencies = [
  "aho-corasick",
  "memchr",

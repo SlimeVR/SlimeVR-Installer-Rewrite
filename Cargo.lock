@@ -106,6 +106,7 @@ dependencies = [
  "lazy_static",
  "log",
  "path-absolutize",
+ "platforms",
  "reqwest",
  "semver",
  "serde",
@@ -1088,6 +1089,15 @@ name = "pkg-config"
 version = "0.3.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2900ede94e305130c13ddd391e0ab7cbaeb783945ae07a279c268cb05109c6cb"
+
+[[package]]
+name = "platforms"
+version = "3.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "626dec3cac7cc0e1577a2ec3fc496277ec2baa084bebad95bb6fdbfae235f84c"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "proc-macro-hack"

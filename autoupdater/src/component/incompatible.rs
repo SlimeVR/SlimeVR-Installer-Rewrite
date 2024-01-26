@@ -18,7 +18,7 @@ pub struct IncompatibleComponent {
 }
 
 impl IncompatibleComponent {
-	pub(in super) fn new(
+	pub(super) fn new(
 		display_name: String,
 		reason: IncompatibilityReason,
 		version: Version,

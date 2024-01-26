@@ -57,61 +57,57 @@ impl<K: Hash + Clone + Eq + Debug, V: Selectable<K>> SelectableHashMap<K, V> {
 	}
 
 	fn enable_inner(&mut self, name: &K, coming_from: Vec<&K>) {
-		match self.components.get(name) {
-			Some(component) => {
-				if component.is_enabled() {
-					return;
-				}
-
-				let mut component = self.components.remove(&name).unwrap();
-				component.enable_by_dependency();
-
-				if let Some(dependencies) = component.value.dependencies() {
-					dependencies.iter().for_each(|dep| {
-						if coming_from.contains(&dep) {
-							panic!("Circular dependency detected: {:?}", coming_from);
-						}
-
-						let mut coming_from = coming_from.clone();
-						coming_from.push(name);
-
-						self.enable_inner(dep, coming_from);
-					});
-				}
-
-				self.components.insert(name.clone(), component);
-			}
-			_ => {}
+		let Some(component) = self.components.get(name) else {
+			return;
+		};
+		if component.is_enabled() {
+			return;
 		}
+
+		let mut component = self.components.remove(name).unwrap();
+		component.enable_by_dependency();
+
+		if let Some(dependencies) = component.value.dependencies() {
+			dependencies.iter().for_each(|dep| {
+				if coming_from.contains(&dep) {
+					panic!("Circular dependency detected: {:?}", coming_from);
+				}
+
+				let mut coming_from = coming_from.clone();
+				coming_from.push(name);
+
+				self.enable_inner(dep, coming_from);
+			});
+		}
+
+		self.components.insert(name.clone(), component);
 	}
 
 	fn disable_inner(&mut self, name: &K, coming_from: Vec<&K>) {
-		match self.components.get(name) {
-			Some(component) => {
-				if !component.is_enabled() {
-					return;
-				}
-
-				let mut component = self.components.remove(name).unwrap();
-				component.disable_by_dependency();
-
-				if let Some(dependencies) = component.value.dependencies() {
-					dependencies.iter().for_each(|dep| {
-						if coming_from.contains(&dep) {
-							panic!("Circular dependency detected: {:?}", coming_from);
-						}
-
-						let mut coming_from = coming_from.clone();
-						coming_from.push(name);
-
-						self.disable_inner(dep, coming_from);
-					});
-				}
-
-				self.components.insert(name.clone(), component);
-			}
-			_ => {}
+		let Some(component) = self.components.get(name) else {
+			return;
+		};
+		if !component.is_enabled() {
+			return;
 		}
+
+		let mut component = self.components.remove(name).unwrap();
+		component.disable_by_dependency();
+
+		if let Some(dependencies) = component.value.dependencies() {
+			dependencies.iter().for_each(|dep| {
+				if coming_from.contains(&dep) {
+					panic!("Circular dependency detected: {:?}", coming_from);
+				}
+
+				let mut coming_from = coming_from.clone();
+				coming_from.push(name);
+
+				self.disable_inner(dep, coming_from);
+			});
+		}
+
+		self.components.insert(name.clone(), component);
 	}
 
 	pub fn disable<Q>(&mut self, name: &Q)
@@ -119,25 +115,23 @@ impl<K: Hash + Clone + Eq + Debug, V: Selectable<K>> SelectableHashMap<K, V> {
 		K: Borrow<Q>,
 		Q: Hash + Eq + ?Sized,
 	{
-		match self.components.get_mut(name) {
-			Some(component) => {
-				if !component.is_enabled() {
-					return;
-				}
-
-				let (name, mut component) = self.components.remove_entry(name).unwrap();
-				component.disable();
-
-				if let Some(dependencies) = component.value.dependencies() {
-					dependencies.iter().for_each(|dep| {
-						self.disable_inner(dep, vec![&name]);
-					});
-				}
-
-				self.components.insert(name, component);
-			}
-			_ => {}
+		let Some(component) = self.components.get_mut(name) else {
+			return;
+		};
+		if !component.is_enabled() {
+			return;
 		}
+
+		let (name, mut component) = self.components.remove_entry(name).unwrap();
+		component.disable();
+
+		if let Some(dependencies) = component.value.dependencies() {
+			dependencies.iter().for_each(|dep| {
+				self.disable_inner(dep, vec![&name]);
+			});
+		}
+
+		self.components.insert(name, component);
 	}
 
 	pub fn enable<Q>(&mut self, name: &Q)
@@ -145,26 +139,23 @@ impl<K: Hash + Clone + Eq + Debug, V: Selectable<K>> SelectableHashMap<K, V> {
 		K: Borrow<Q>,
 		Q: Hash + Eq + ?Sized,
 	{
-		match self.components.get_mut(name) {
-			Some(component) => {
-				if component.is_enabled() {
-					return;
-				}
-
-				let (name, mut component) =
-					self.components.remove_entry(&name).unwrap();
-				component.enable();
-
-				if let Some(dependencies) = component.value.dependencies() {
-					dependencies.iter().for_each(|dep| {
-						self.enable_inner(dep, vec![&name]);
-					});
-				}
-
-				self.components.insert(name, component);
-			}
-			_ => {}
+		let Some(component) = self.components.get_mut(name) else {
+			return;
+		};
+		if component.is_enabled() {
+			return;
 		}
+
+		let (name, mut component) = self.components.remove_entry(name).unwrap();
+		component.enable();
+
+		if let Some(dependencies) = component.value.dependencies() {
+			dependencies.iter().for_each(|dep| {
+				self.enable_inner(dep, vec![&name]);
+			});
+		}
+
+		self.components.insert(name, component);
 	}
 
 	pub fn is_enabled<Q>(&self, name: &Q) -> bool

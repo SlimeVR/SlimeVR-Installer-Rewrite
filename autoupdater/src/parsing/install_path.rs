@@ -1,5 +1,8 @@
 use autoupdater::component::MaybeCrossPlatform;
-use color_eyre::{Result, eyre::{ContextCompat, Context}};
+use color_eyre::{
+	eyre::{Context, ContextCompat},
+	Result,
+};
 use lazy_static::lazy_static;
 use path_absolutize::Absolutize;
 use serde::{Deserialize, Serialize};

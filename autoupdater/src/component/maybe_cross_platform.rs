@@ -19,23 +19,23 @@ impl<T> MaybeCrossPlatform<T> {
 	/// Gets the `T` for the current platform.
 	pub fn get(&self) -> Option<&T> {
 		match self {
-			MaybeCrossPlatform::Cross(inner) => Some(inner),
-			MaybeCrossPlatform::NotCross(map) => map.get(&Platform::current()),
+			Self::Cross(inner) => Some(inner),
+			Self::NotCross(map) => map.get(&Platform::current()),
 		}
 	}
 
 	#[allow(unused)]
 	pub fn get_mut(&mut self) -> Option<&mut T> {
 		match self {
-			MaybeCrossPlatform::Cross(inner) => Some(inner),
-			MaybeCrossPlatform::NotCross(map) => map.get_mut(&Platform::current()),
+			Self::Cross(inner) => Some(inner),
+			Self::NotCross(map) => map.get_mut(&Platform::current()),
 		}
 	}
 
 	pub fn get_owned(self) -> Option<T> {
 		match self {
-			MaybeCrossPlatform::Cross(inner) => Some(inner),
-			MaybeCrossPlatform::NotCross(mut map) => map.remove(&Platform::current()),
+			Self::Cross(inner) => Some(inner),
+			Self::NotCross(mut map) => map.remove(&Platform::current()),
 		}
 	}
 }

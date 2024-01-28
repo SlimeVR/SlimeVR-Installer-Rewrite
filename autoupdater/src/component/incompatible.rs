@@ -1,8 +1,8 @@
 use std::fmt::Display;
 
-use semver::Version;
-
 use crate::platform::Platform;
+
+use super::version::VersionResolvable;
 
 #[derive(Debug, Clone)]
 pub enum IncompatibilityReason {
@@ -13,7 +13,7 @@ pub enum IncompatibilityReason {
 pub struct IncompatibleComponent {
 	display_name: String,
 	reason: IncompatibilityReason,
-	version: Version,
+	version: VersionResolvable,
 	platforms: Vec<Platform>,
 }
 
@@ -21,7 +21,7 @@ impl IncompatibleComponent {
 	pub(super) fn new(
 		display_name: String,
 		reason: IncompatibilityReason,
-		version: Version,
+		version: VersionResolvable,
 		platforms: Vec<Platform>,
 	) -> Self {
 		Self {
@@ -32,11 +32,15 @@ impl IncompatibleComponent {
 		}
 	}
 
+	pub async fn fetch(&self) -> reqwest::Result<()> {
+		self.version.fetch().await
+	}
+
 	pub fn reason(&self) -> &IncompatibilityReason {
 		&self.reason
 	}
 
-	pub fn version(&self) -> &Version {
+	pub fn version(&self) -> &VersionResolvable {
 		&self.version
 	}
 

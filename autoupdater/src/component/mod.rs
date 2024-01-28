@@ -2,6 +2,7 @@ mod available;
 mod incompatible;
 mod installed;
 mod maybe_cross_platform;
+mod version;
 
 pub use maybe_cross_platform::MaybeCrossPlatform;
 

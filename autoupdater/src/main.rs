@@ -40,6 +40,7 @@ macro_rules! try_get {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+	pretty_env_logger::init();
 	let args = Args::parse();
 	color_eyre::install()?;
 
@@ -49,6 +50,7 @@ async fn main() -> Result<()> {
 
 	let all_installable_components = AvailableComponentsFile::load("components.yml")?;
 	let components: Components = all_installable_components.into();
+	components.fetch().await;
 
 	println!("Compatible components:");
 	for (_, c) in components.compatible() {

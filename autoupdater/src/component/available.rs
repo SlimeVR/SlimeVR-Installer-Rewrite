@@ -1,6 +1,7 @@
 use std::{collections::HashMap, fmt::Display, fs::File, io, path::Path};
 
-use semver::Version;
+use futures::future::join_all;
+use log::warn;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -10,6 +11,7 @@ use crate::{
 
 use super::{
 	incompatible::{IncompatibilityReason, IncompatibleComponent},
+	version::VersionResolvable,
 	MaybeCrossPlatform,
 };
 
@@ -30,12 +32,16 @@ impl AvailableComponentsFile {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Component {
 	display_name: String,
-	version: Version,
+	version: VersionResolvable,
 	platforms: Vec<Platform>,
 	dependencies: Option<MaybeCrossPlatform<Vec<String>>>,
 }
 
 impl Component {
+	pub async fn fetch(&self) -> reqwest::Result<()> {
+		self.version.fetch().await
+	}
+
 	pub fn incompatible_because(
 		&self,
 		reason: IncompatibilityReason,
@@ -48,7 +54,7 @@ impl Component {
 		)
 	}
 
-	pub fn version(&self) -> &Version {
+	pub fn version(&self) -> &VersionResolvable {
 		&self.version
 	}
 
@@ -72,7 +78,7 @@ impl Selectable<String> for Component {
 
 impl Display for Component {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		write!(f, "{} v{}", self.display_name, self.version)
+		write!(f, "{} {}", self.display_name, self.version)
 	}
 }
 
@@ -81,6 +87,22 @@ pub struct Components {
 	incompatible: HashMap<String, IncompatibleComponent>,
 }
 impl Components {
+	pub async fn fetch(&self) {
+		join_all(self.compatible.iter().map(|(name, c)| async move {
+			if let Err(e) = c.fetch().await {
+				warn!("\"{name}\" couldn't fetch version: {e}")
+			}
+		}))
+		.await;
+
+		join_all(self.incompatible.iter().map(|(name, c)| async move {
+			if let Err(e) = c.fetch().await {
+				warn!("\"{name}\" couldn't fetch version {e}")
+			}
+		}))
+		.await;
+	}
+
 	pub fn compatible(&self) -> &HashMap<String, Component> {
 		&self.compatible
 	}
@@ -97,7 +119,6 @@ impl Components {
 
 impl From<AvailableComponentsFile> for Components {
 	fn from(available: AvailableComponentsFile) -> Self {
-
 		let mut compatible = HashMap::new();
 		let mut incompatible = HashMap::new();
 

@@ -25,7 +25,7 @@ impl FromStr for Platform {
 	type Err = ();
 
 	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		let v: Vec<&str> = s.split("-").collect();
+		let v: Vec<&str> = s.split('-').take(3).collect();
 		if v.len() != 2 {
 			return Err(());
 		}

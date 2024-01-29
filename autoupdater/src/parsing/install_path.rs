@@ -1,4 +1,3 @@
-use autoupdater::component::MaybeCrossPlatform;
 use color_eyre::{
 	eyre::{Context, ContextCompat},
 	Result,
@@ -7,6 +6,8 @@ use lazy_static::lazy_static;
 use path_absolutize::Absolutize;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
+
+use crate::component::MaybeCrossPlatform;
 
 lazy_static! {
 	static ref SLIME_DIR: MaybeCrossPlatform<PathBuf> =

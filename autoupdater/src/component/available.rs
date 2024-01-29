@@ -5,6 +5,7 @@ use log::error;
 use serde::{Deserialize, Serialize};
 
 use crate::{
+	parsing::Procedure,
 	platform::Platform,
 	util::{Selectable, SelectableHashMap},
 };
@@ -34,6 +35,8 @@ pub struct Component {
 	display_name: String,
 	version: VersionResolvable,
 	platforms: Vec<Platform>,
+	#[serde(with = "serde_yaml::with::singleton_map_recursive")]
+	procedure: Vec<Procedure>,
 	dependencies: Option<MaybeCrossPlatform<Vec<String>>>,
 }
 

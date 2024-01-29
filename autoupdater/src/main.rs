@@ -1,5 +1,3 @@
-mod parsing;
-
 use autoupdater::component::{
 	AvailableComponentsFile, Components, InstalledComponentsFile,
 };

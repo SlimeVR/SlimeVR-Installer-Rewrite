@@ -38,7 +38,7 @@ macro_rules! try_get {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-	pretty_env_logger::init();
+	env_logger::init();
 	let args = Args::parse();
 	color_eyre::install()?;
 

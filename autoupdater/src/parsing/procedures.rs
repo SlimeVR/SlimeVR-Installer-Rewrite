@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use formatx::formatx;
-use serde::{ser::SerializeSeq, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 use crate::component::MaybeCrossPlatform;
 

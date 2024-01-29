@@ -1,7 +1,7 @@
 use std::{collections::HashMap, fmt::Display, fs::File, io, path::Path};
 
 use futures::future::join_all;
-use log::warn;
+use log::error;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -90,14 +90,14 @@ impl Components {
 	pub async fn fetch(&self) {
 		join_all(self.compatible.iter().map(|(name, c)| async move {
 			if let Err(e) = c.fetch().await {
-				warn!("\"{name}\" couldn't fetch version: {e}")
+				error!("\"{name}\" couldn't fetch version: {e}")
 			}
 		}))
 		.await;
 
 		join_all(self.incompatible.iter().map(|(name, c)| async move {
 			if let Err(e) = c.fetch().await {
-				warn!("\"{name}\" couldn't fetch version {e}")
+				error!("\"{name}\" couldn't fetch version {e}")
 			}
 		}))
 		.await;

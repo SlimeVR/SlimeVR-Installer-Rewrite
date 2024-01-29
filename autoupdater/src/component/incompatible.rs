@@ -57,7 +57,7 @@ impl Display for IncompatibleComponent {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		write!(
 			f,
-			"{} v{} because {:?}",
+			"{} {} because {:?}",
 			self.display_name, self.version, self.reason
 		)
 	}

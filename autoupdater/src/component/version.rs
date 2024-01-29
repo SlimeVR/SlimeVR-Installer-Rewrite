@@ -1,4 +1,4 @@
-use std::{cell::OnceCell, fmt::Display, str::FromStr};
+use std::{cell::OnceCell, fmt::Display};
 
 use color_eyre::Result;
 use log::warn;
@@ -8,9 +8,15 @@ use serde::{de, Deserialize, Serialize};
 use crate::util;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(untagged)]
 pub enum VersionResolvable {
+	#[serde(alias = "github")]
 	Github(GithubRepo),
+	#[serde(alias = "java")]
+	Java(JavaAdoptium),
+
+	// Can't make version be untagged because of https://github.com/serde-rs/serde/issues/1183
+	// #[serde(untagged)]
+	#[serde(alias = "semver")]
 	Semver(Version),
 }
 
@@ -20,6 +26,9 @@ impl VersionResolvable {
 			Self::Github(r) => {
 				r.fetch_version().await?;
 			}
+			Self::Java(j) => {
+				j.fetch_version().await?;
+			}
 			Self::Semver(_) => {}
 		};
 		Ok(())
@@ -28,22 +37,26 @@ impl VersionResolvable {
 	pub fn latest(&self) -> Option<Version> {
 		match self {
 			Self::Github(r) => r.latest(),
+			Self::Java(j) => Some(j.latest()),
 			Self::Semver(v) => Some(v.clone()),
 		}
 	}
 }
 
+// TODO: Don't implement display while using .latest(),
+//		maybe we don't want to get latest always.
 impl Display for VersionResolvable {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		match self {
 			Self::Github(r) => {
-				let v = r
-					.latest()
-					.map(|o| o.to_string())
-					.unwrap_or_else(|| "unknown version".to_string());
-				write!(f, "v{}", v)
+				if let Some(v) = r.latest() {
+					write!(f, "v{v}")
+				} else {
+					write!(f, "unknown version")
+				}
 			}
-			Self::Semver(v) => write!(f, "v{}", v),
+			Self::Java(j) => write!(f, "v{}", j.latest()),
+			Self::Semver(v) => write!(f, "v{v}"),
 		}
 	}
 }
@@ -69,19 +82,20 @@ pub struct GithubRelease {
 	pub prerelease: bool,
 }
 
-#[derive(Clone, Debug)]
-pub struct GithubRepo(String, OnceCell<Vec<GithubRelease>>);
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct GithubRepo(String, #[serde(skip)] OnceCell<Vec<GithubRelease>>);
 
 impl GithubRepo {
 	fn get_releases(&self) -> Option<&Vec<GithubRelease>> {
 		let releases = self.1.get();
 		if releases.is_none() {
-			warn!("Tried to get a non-yet fetched version in {}", self)
+			warn!("Tried to get a non-yet fetched version in {}", self.0)
 		}
 		releases
 	}
 
-	pub async fn fetch_version(&self) -> reqwest::Result<&Vec<GithubRelease>> {
+	async fn fetch_version(&self) -> reqwest::Result<&Vec<GithubRelease>> {
 		if let Some(releases) = self.1.get() {
 			return Ok(releases);
 		}
@@ -95,13 +109,13 @@ impl GithubRepo {
 		Ok(self.1.get_or_init(move || releases))
 	}
 
-	pub fn latest(&self) -> Option<Version> {
+	fn latest(&self) -> Option<Version> {
 		let Some(releases) = self.get_releases() else {
 			return None;
 		};
 
 		let Some(r) = releases.iter().find(|r| !r.draft && !r.prerelease) else {
-			warn!("Couldn't find any version in {}", self);
+			warn!("Couldn't find any version in {}", self.0);
 			return None;
 		};
 
@@ -109,41 +123,84 @@ impl GithubRepo {
 	}
 }
 
-impl Display for GithubRepo {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		write!(f, "github:{}", self.0)
-	}
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct AdoptiumRelease {
+	version_data: AdoptiumVersionData,
 }
 
-impl FromStr for GithubRepo {
-	type Err = ();
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct AdoptiumVersionData {
+	semver: Version,
+}
 
-	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		if !s.starts_with("github:") || s.split('/').take(3).count() != 2 {
-			return Err(());
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct JavaAdoptium(u8, #[serde(skip)] OnceCell<AdoptiumRelease>);
+
+impl JavaAdoptium {
+	fn get_arch() -> &'static str {
+		match std::env::consts::ARCH {
+			"x86_64" => "x64",
+			arch => arch,
 		}
-		Ok(Self(s[7..].to_string(), OnceCell::new()))
 	}
-}
 
-impl Serialize for GithubRepo {
-	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-	where
-		S: serde::Serializer,
-	{
-		serializer.serialize_str(&self.to_string())
+	fn get_os() -> &'static str {
+		match std::env::consts::OS {
+			"macos" => "mac",
+			os => os,
+		}
 	}
-}
 
-impl<'de> Deserialize<'de> for GithubRepo {
-	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-	where
-		D: serde::Deserializer<'de>,
-	{
-		use serde::de::Error as DeError;
-		let string = std::string::String::deserialize(deserializer)?;
-		string
-			.parse()
-			.map_err(|_| D::Error::custom(format!("Invalid Github repo {}", string)))
+	fn get_releases(&self) -> Option<&AdoptiumRelease> {
+		let releases = self.1.get();
+		if releases.is_none() {
+			warn!("Tried to get a non-yet fetched version in {}", self.0)
+		}
+		releases
+	}
+
+	fn generate_version_link(&self) -> reqwest::Url {
+		reqwest::Url::parse_with_params(
+			&format!(
+				"https://api.adoptium.net/v3/assets/feature_releases/{}/ga",
+				self.0
+			),
+			&[
+				("architecture", Self::get_arch()),
+				("os", Self::get_os()),
+				("heap_size", "normal"),
+				("image_type", "jre"),
+				("page", "0"),
+				("page_size", "1"),
+				("project", "jdk"),
+				("sort_method", "DEFAULT"),
+				("sort_order", "DESC"),
+				("vendor", "eclipse"),
+			],
+		)
+		.unwrap()
+	}
+
+	async fn fetch_version(&self) -> reqwest::Result<&AdoptiumRelease> {
+		if let Some(releases) = self.1.get() {
+			return Ok(releases);
+		}
+		let client = util::CLIENT.clone();
+		let [release]: [AdoptiumRelease; 1] = client
+			.get(self.generate_version_link())
+			.send()
+			.await?
+			.json()
+			.await?;
+		Ok(self.1.get_or_init(move || release))
+	}
+
+	fn latest(&self) -> Version {
+		if let Some(release) = self.get_releases() {
+			release.version_data.semver.clone()
+		} else {
+			Version::new(self.0.into(), 0, 0)
+		}
 	}
 }

@@ -1,9 +1,17 @@
-use std::str::FromStr;
+use std::{path::PathBuf, str::FromStr};
 
 use formatx::formatx;
 use serde::{Deserialize, Serialize};
 
 use crate::component::MaybeCrossPlatform;
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(transparent)]
+pub struct Procedures {
+	procedures: Vec<Procedure>,
+	#[serde(skip)]
+	cwd: PathBuf,
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "lowercase")]

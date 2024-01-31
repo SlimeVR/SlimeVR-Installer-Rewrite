@@ -1,0 +1,8 @@
+{
+    "nixEnvSelector.nixFile": "${workspaceRoot}/shell.nix",
+    "yaml.customTags": [
+        "!github scalar",
+        "!semver scalar",
+        "!java scalar"
+    ]
+}

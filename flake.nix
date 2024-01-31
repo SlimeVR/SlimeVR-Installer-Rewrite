@@ -1,112 +1,75 @@
 {
-  description = "Affordable full-body tracking for VR!";
+  description = "Server app for SlimeVR ecosystem";
 
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    devenv.url = "github:cachix/devenv";
-    nix2container.url = "github:nlewo/nix2container";
-    nix2container.inputs.nixpkgs.follows = "nixpkgs";
-    mk-shell-bin.url = "github:rrbutani/nix-mk-shell-bin";
-    # nixgl.url = "github:guibou/nixGL";
-    fenix.url = "github:nix-community/fenix";
-  };
+  inputs.nixpkgs.url = "nixpkgs/nixos-unstable";
+  inputs.flake-utils.url = "github:numtide/flake-utils";
+  inputs.pre-commit.url = "github:cachix/pre-commit-hooks.nix";
 
-  nixConfig = {
-    extra-trusted-public-keys = "devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw=";
-    extra-substituters = "https://devenv.cachix.org";
-  };
+  inputs.rust-overlay.url = "github:oxalica/rust-overlay";
 
-  outputs = inputs @ {
+  outputs = {
     self,
-    flake-parts,
-    # nixgl,
-    ...
+    nixpkgs,
+    flake-utils,
+    rust-overlay,
+    pre-commit,
   }:
-    flake-parts.lib.mkFlake {inherit inputs;} {
-      imports = [
-        inputs.devenv.flakeModule
-      ];
-      systems = ["x86_64-linux" "i686-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin"];
-
-      perSystem = {
-        config,
-        self',
-        inputs',
-        pkgs,
-        system,
-        lib,
-        ...
-      }: {
-        # Per-system attributes can be defined here. The self' and inputs'
-        # module parameters provide easy access to attributes of the same
-        # system.
-
-        # Equivalent to  inputs'.nixpkgs.legacyPackages.hello;
-        # packages.default = pkgs.hello;
-        _module.args.pkgs = import self.inputs.nixpkgs {
-          inherit system;
-        #   overlays = [nixgl.overlay];
+    flake-utils.lib.eachDefaultSystem
+    (
+      system: let
+        overlays = [(import rust-overlay)];
+        pkgs = import nixpkgs {
+          inherit system overlays;
         };
-
-        devenv.shells.default = let
-          fenixpkgs = inputs'.fenix.packages;
-          rust_toolchain = lib.importTOML ./rust-toolchain.toml;
-        in {
-          name = "slimevr";
-
-          imports = [
-            # This is just like the imports in devenv.nix.
-            # See https://devenv.sh/guides/using-with-flake-parts/#import-a-devenv-module
-            # ./devenv-foo.nix
-          ];
-
-          # https://devenv.sh/reference/options/
-          packages =
-            (with pkgs; [
-            #   pkgs.nixgl.nixGLIntel
-              cacert
-            ])
-            ++ lib.optionals pkgs.stdenv.isLinux (with pkgs; [
-              cmake
-              git
-              gcc
-              xorg.libXext
-              xorg.libXft
-              xorg.libXinerama
-              xorg.libXcursor
-              xorg.libXrender
-              xorg.libXfixes
-              libcerf
-              pango
-              cairo
-              libGL
-              mesa
-              pkg-config
-              wayland-protocols
-              dbus.dev
-              ninja
-            ])
-            ++ lib.optionals pkgs.stdenv.isDarwin [
-              pkgs.darwin.apple_sdk.frameworks.Security
+        rustTarget = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
+        nativeBuildInputs = with pkgs; [
+          cmake
+          git
+          gcc
+          xorg.libXext
+          xorg.libXft
+          xorg.libXinerama
+          xorg.libXcursor
+          xorg.libXrender
+          xorg.libXfixes
+          wayland
+          wayland-protocols
+          udev
+          libxkbcommon
+          dbus.dev
+          libcerf
+          pango
+          cairo
+          libGL
+          mesa
+          pkg-config
+          openssl
+        ];
+        buildInputs = with pkgs; [
+        ];
+      in {
+        checks = {
+          pre-commit-check = pre-commit.lib.${system}.run {
+            src = ./.;
+            hooks = {
+              alejandra.enable = true;
+              rustfmt.enable = true;
+            };
+          };
+        };
+        devShells.default = pkgs.mkShell {
+          nativeBuildInputs =
+            nativeBuildInputs
+            ++ [
+            ];
+          buildInputs =
+            buildInputs
+            ++ [
+              rustTarget
             ];
 
-          languages.rust = {
-            enable = true;
-            toolchain = fenixpkgs.fromToolchainName {
-              name = rust_toolchain.toolchain.channel;
-              sha256 = "sha256-SXRtAuO4IqNOQq+nLbrsDFbVk+3aVA8NNpSZsKlVH/8=";
-            };
-            components = rust_toolchain.toolchain.components;
-          };
-
-          enterShell = with pkgs; ''
-          '';
+          inherit (self.checks.${system}.pre-commit-check) shellHook;
         };
-      };
-      flake = {
-        # The usual flake attributes can be defined here, including system-
-        # agnostic ones like nixosModule and system-enumerating ones, although
-        # those are more easily expressed in perSystem.
-      };
-    };
+      }
+    );
 }

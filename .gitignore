@@ -4,6 +4,8 @@
 
 # Nix
 /.direnv
+/.devenv
+/.pre-commit-config.yaml
 
 
 # Added by cargo

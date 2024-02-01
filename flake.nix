@@ -53,7 +53,7 @@
             src = ./.;
             hooks = {
               alejandra.enable = true;
-              rustfmt.enable = true;
+              # rustfmt.enable = true;
             };
           };
         };

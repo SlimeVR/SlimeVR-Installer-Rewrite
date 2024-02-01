@@ -8,15 +8,13 @@ use serde::{de, Deserialize, Serialize};
 use crate::util;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum VersionResolvable {
-	#[serde(alias = "github")]
 	Github(GithubRepo),
-	#[serde(alias = "java")]
 	Java(JavaAdoptium),
 
 	// Can't make version be untagged because of https://github.com/serde-rs/serde/issues/1183
 	// #[serde(untagged)]
-	#[serde(alias = "semver")]
 	Semver(Version),
 }
 

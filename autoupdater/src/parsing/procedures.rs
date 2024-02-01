@@ -8,10 +8,13 @@ use crate::component::MaybeCrossPlatform;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(transparent)]
 pub struct Procedures {
+	#[serde(with = "serde_yaml::with::singleton_map_recursive")]
 	procedures: Vec<Procedure>,
 	#[serde(skip)]
 	cwd: PathBuf,
 }
+
+impl Procedures {}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "lowercase")]

@@ -138,7 +138,7 @@ impl From<AvailableComponentsFile> for Components {
 			}
 		}
 
-		Components {
+		Self {
 			compatible,
 			incompatible,
 		}

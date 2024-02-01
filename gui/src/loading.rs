@@ -32,7 +32,7 @@ impl LoadingScreen {
 		progress.set_minimum(0.);
 		progress.set_maximum(100.);
 
-		let status = AnimatedText::new([
+		let mut status = AnimatedText::new([
 			"".to_string(),
 			".".to_string(),
 			"..".to_string(),
@@ -41,6 +41,7 @@ impl LoadingScreen {
 		.with_size(5, 20)
 		.above_of(&*progress, 5)
 		.center_x(&*progress);
+		status.set_status("Looking for butter".to_string());
 
 		let animated_slime = AnimatedSlime::new(100, 100)
 			.above_of(&*status, 1)
@@ -51,9 +52,12 @@ impl LoadingScreen {
 			.with_size(500, 20);
 		{
 			let progress = progress.clone();
+			let animated_slime = animated_slime.clone();
 			button.set_callback(move |_| {
+				let mut animated_slime = animated_slime.clone();
 				let progress = progress.clone();
-				progress.set_progress_value(0.)
+				progress.set_progress_value(0.);
+				animated_slime.set_status(SlimeState::Happy);
 			});
 		}
 		let mut button_50 = button::Button::default()
@@ -62,7 +66,7 @@ impl LoadingScreen {
 			.below_of(&button, 5);
 		{
 			let progress = progress.clone();
-			let mut animated_slime = animated_slime.clone();
+			let animated_slime = animated_slime.clone();
 			button_50.set_callback(move |_| {
 				let mut animated_slime = animated_slime.clone();
 				let progress = progress.clone();

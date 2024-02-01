@@ -14,7 +14,7 @@ pub struct InstalledComponent {
 }
 
 impl InstalledComponentsFile {
-	pub fn load<P: AsRef<Path>>(path: P) -> io::Result<InstalledComponentsFile> {
+	pub fn load<P: AsRef<Path>>(path: P) -> io::Result<Self> {
 		match path.as_ref().exists() {
 			true => {
 				let file = File::open(path)?;
@@ -23,7 +23,7 @@ impl InstalledComponentsFile {
 					Err(e) => Err(io::Error::new(io::ErrorKind::Other, e)),
 				}
 			}
-			false => Ok(InstalledComponentsFile {
+			false => Ok(Self {
 				components: HashMap::new(),
 			}),
 		}
